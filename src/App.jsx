@@ -531,7 +531,7 @@ function HoldingPage() {
         </div>
         <div className="hero-copy">
           <p className="eyebrow"><span>01</span> A NEW CHAPTER</p>
-          <h1 id="headline">Something<br /><em>good</em> is coming.</h1>
+          <h1 id="headline">Something<br /><em>GREAT</em> is coming.</h1>
           <p className="intro">Street Trading Co. is getting a new home online.<br className="desktop-break" /> Check back soon to see what we’re building.</p>
           <div className="address-block" aria-label="Street Trading Co. address">
             <span className="address-label">FIND US</span>
