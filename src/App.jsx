@@ -472,6 +472,7 @@ const ADMIN_SECTIONS = [
 ];
 
 const sectionsByKey = Object.fromEntries(ADMIN_SECTIONS.map((section) => [section.key, section]));
+const STREET_TRADING_ADMIN_URL = 'https://streettrading.co.uk/admin';
 
 export default function App() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
@@ -657,7 +658,7 @@ function AdminLogin() {
     setBusy(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail.trim(), {
-        redirectTo: `${window.location.origin}/admin`,
+        redirectTo: STREET_TRADING_ADMIN_URL,
       });
       if (error) throw error;
       setStatus({ kind: 'success', message: 'If that address is authorised, a password reset link has been sent.' });
