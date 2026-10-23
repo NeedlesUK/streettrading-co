@@ -475,8 +475,10 @@ const sectionsByKey = Object.fromEntries(ADMIN_SECTIONS.map((section) => [sectio
 
 export default function App() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const recoveryRedirect = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type') === 'recovery'
+    || new URLSearchParams(window.location.search).get('type') === 'recovery';
 
-  if (path === '/admin' || path.startsWith('/admin/')) return <AdminLogin />;
+  if (recoveryRedirect || path === '/admin' || path.startsWith('/admin/')) return <AdminLogin />;
 
   return <HoldingPage />;
 }
@@ -549,6 +551,14 @@ function HoldingPage() {
 function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [recoveryPassword, setRecoveryPassword] = useState('');
+  const [recoveryConfirmation, setRecoveryConfirmation] = useState('');
+  const [recoveryMode, setRecoveryMode] = useState(() => {
+    const hashType = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type');
+    const queryType = new URLSearchParams(window.location.search).get('type');
+    return hashType === 'recovery' || queryType === 'recovery' ? 'update' : '';
+  });
   const [session, setSession] = useState(null);
   const [status, setStatus] = useState({ kind: '', message: '' });
   const [busy, setBusy] = useState(false);
@@ -556,11 +566,28 @@ function AdminLogin() {
   useEffect(() => {
     let active = true;
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, recoverySession) => {
+      if (!active) return;
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecoveryMode('update');
+        setSession(null);
+        if (recoverySession?.user?.email) setRecoveryEmail(recoverySession.user.email);
+      }
+    });
+
     async function restoreAuthorisedSession() {
       if (!supabase) return;
 
       const { data: { session: restoredSession } } = await supabase.auth.getSession();
       if (!restoredSession || !active) return;
+
+      const recoveryRedirect = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type') === 'recovery'
+        || new URLSearchParams(window.location.search).get('type') === 'recovery';
+      if (recoveryRedirect) {
+        setRecoveryMode('update');
+        setRecoveryEmail(restoredSession.user?.email || '');
+        return;
+      }
 
       try {
         const authorised = await isAuthorisedAdmin(restoredSession.user.id);
@@ -572,7 +599,10 @@ function AdminLogin() {
     }
 
     restoreAuthorisedSession();
-    return () => { active = false; };
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function handleSubmit(event) {
@@ -615,6 +645,59 @@ function AdminLogin() {
     setStatus({ kind: '', message: '' });
   }
 
+  async function handleRequestReset(event) {
+    event.preventDefault();
+    setStatus({ kind: '', message: '' });
+
+    if (!supabase) {
+      setStatus({ kind: 'error', message: 'Password recovery is not configured yet.' });
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail.trim(), {
+        redirectTo: `${window.location.origin}/admin`,
+      });
+      if (error) throw error;
+      setStatus({ kind: 'success', message: 'If that address is authorised, a password reset link has been sent.' });
+    } catch (error) {
+      setStatus({ kind: 'error', message: error.message || 'Unable to send a password reset link.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePasswordUpdate(event) {
+    event.preventDefault();
+    setStatus({ kind: '', message: '' });
+
+    if (recoveryPassword.length < 12) {
+      setStatus({ kind: 'error', message: 'Use a password of at least 12 characters.' });
+      return;
+    }
+    if (recoveryPassword !== recoveryConfirmation) {
+      setStatus({ kind: 'error', message: 'The passwords do not match.' });
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: recoveryPassword });
+      if (error) throw error;
+      await supabase.auth.signOut();
+      window.history.replaceState({}, document.title, '/admin');
+      setRecoveryMode('');
+      setRecoveryPassword('');
+      setRecoveryConfirmation('');
+      setStatus({ kind: 'success', message: 'Password updated. You can now sign in.' });
+    } catch (error) {
+      setStatus({ kind: 'error', message: error.message || 'Unable to update the password.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (session) return <AdminDashboard session={session} onSignOut={handleSignOut} />;
 
   return (
@@ -633,35 +716,99 @@ function AdminLogin() {
       <section className="admin-shell" aria-labelledby="admin-headline">
         <div className="admin-card">
           <p className="eyebrow"><span>02</span> PRIVATE ACCESS</p>
-          <h1 id="admin-headline">Admin<br /><em>login.</em></h1>
-          <p className="intro">This area is reserved for authorised Street Trading Co. administrators.</p>
+          {recoveryMode === 'update' ? (
+            <>
+              <h1 id="admin-headline">Set a new<br /><em>password.</em></h1>
+              <p className="intro">Choose a password for your Street Trading Co. administrator account.</p>
+              <form className="admin-form" onSubmit={handlePasswordUpdate}>
+                <label className="admin-field">
+                  <span>NEW PASSWORD</span>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={12}
+                    value={recoveryPassword}
+                    onChange={(event) => setRecoveryPassword(event.target.value)}
+                    required
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>CONFIRM PASSWORD</span>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={12}
+                    value={recoveryConfirmation}
+                    onChange={(event) => setRecoveryConfirmation(event.target.value)}
+                    required
+                  />
+                </label>
+                <button className="admin-submit" type="submit" disabled={busy}>
+                  {busy ? 'SAVING…' : 'SET PASSWORD'}
+                </button>
+                {status.message && <p className={'admin-status ' + status.kind}>{status.message}</p>}
+              </form>
+            </>
+          ) : recoveryMode === 'request' ? (
+            <>
+              <h1 id="admin-headline">Reset<br /><em>password.</em></h1>
+              <p className="intro">Enter your authorised email address and we’ll send a secure reset link.</p>
+              <form className="admin-form" onSubmit={handleRequestReset}>
+                <label className="admin-field">
+                  <span>EMAIL ADDRESS</span>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={recoveryEmail}
+                    onChange={(event) => setRecoveryEmail(event.target.value)}
+                    required
+                  />
+                </label>
+                <button className="admin-submit" type="submit" disabled={busy}>
+                  {busy ? 'SENDING…' : 'EMAIL RESET LINK'}
+                </button>
+                <button className="admin-submit secondary" type="button" onClick={() => { setRecoveryMode(''); setStatus({ kind: '', message: '' }); }}>
+                  BACK TO LOGIN
+                </button>
+                {status.message && <p className={'admin-status ' + status.kind}>{status.message}</p>}
+              </form>
+            </>
+          ) : (
+            <>
+              <h1 id="admin-headline">Admin<br /><em>login.</em></h1>
+              <p className="intro">This area is reserved for authorised Street Trading Co. administrators.</p>
 
-          <form className="admin-form" onSubmit={handleSubmit}>
-            <label className="admin-field">
-              <span>EMAIL ADDRESS</span>
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-            </label>
-            <label className="admin-field">
-              <span>PASSWORD</span>
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
-            </label>
-            <button className="admin-submit" type="submit" disabled={busy}>
-              {busy ? 'SIGNING IN…' : 'SIGN IN'}
-            </button>
-            {status.message && <p className={'admin-status ' + status.kind}>{status.message}</p>}
-          </form>
+              <form className="admin-form" onSubmit={handleSubmit}>
+                <label className="admin-field">
+                  <span>EMAIL ADDRESS</span>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    required
+                  />
+                </label>
+                <label className="admin-field">
+                  <span>PASSWORD</span>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                </label>
+                <button className="admin-submit" type="submit" disabled={busy}>
+                  {busy ? 'SIGNING IN…' : 'SIGN IN'}
+                </button>
+                <button className="admin-submit secondary" type="button" onClick={() => { setRecoveryEmail(email); setRecoveryMode('request'); setStatus({ kind: '', message: '' }); }}>
+                  FORGOT PASSWORD?
+                </button>
+                {status.message && <p className={'admin-status ' + status.kind}>{status.message}</p>}
+              </form>
+            </>
+          )}
         </div>
       </section>
 
