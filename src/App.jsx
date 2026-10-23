@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   BarChart3,
@@ -474,10 +474,15 @@ const ADMIN_SECTIONS = [
 const sectionsByKey = Object.fromEntries(ADMIN_SECTIONS.map((section) => [section.key, section]));
 const STREET_TRADING_ADMIN_URL = 'https://streettrading.co.uk/admin';
 
+function hasRecoveryMarker() {
+  const hashType = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type');
+  const queryType = new URLSearchParams(window.location.search).get('type');
+  return hashType === 'recovery' || queryType === 'recovery';
+}
+
 export default function App() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
-  const recoveryRedirect = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type') === 'recovery'
-    || new URLSearchParams(window.location.search).get('type') === 'recovery';
+  const recoveryRedirect = hasRecoveryMarker();
 
   if (recoveryRedirect || path === '/admin' || path.startsWith('/admin/')) return <AdminLogin />;
 
@@ -550,15 +555,17 @@ function HoldingPage() {
 }
 
 function AdminLogin() {
+  // Supabase may consume the recovery hash while it establishes the session.
+  // Capture the marker before that happens so the recovery session cannot be
+  // mistaken for an ordinary sign-in and sent straight to the dashboard.
+  const recoveryEntryRef = useRef(hasRecoveryMarker());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoveryPassword, setRecoveryPassword] = useState('');
   const [recoveryConfirmation, setRecoveryConfirmation] = useState('');
   const [recoveryMode, setRecoveryMode] = useState(() => {
-    const hashType = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type');
-    const queryType = new URLSearchParams(window.location.search).get('type');
-    return hashType === 'recovery' || queryType === 'recovery' ? 'update' : '';
+    return hasRecoveryMarker() ? 'update' : '';
   });
   const [session, setSession] = useState(null);
   const [status, setStatus] = useState({ kind: '', message: '' });
@@ -569,7 +576,7 @@ function AdminLogin() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, recoverySession) => {
       if (!active) return;
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && recoveryEntryRef.current)) {
         setRecoveryMode('update');
         setSession(null);
         if (recoverySession?.user?.email) setRecoveryEmail(recoverySession.user.email);
@@ -582,8 +589,7 @@ function AdminLogin() {
       const { data: { session: restoredSession } } = await supabase.auth.getSession();
       if (!restoredSession || !active) return;
 
-      const recoveryRedirect = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type') === 'recovery'
-        || new URLSearchParams(window.location.search).get('type') === 'recovery';
+      const recoveryRedirect = recoveryEntryRef.current || hasRecoveryMarker();
       if (recoveryRedirect) {
         setRecoveryMode('update');
         setRecoveryEmail(restoredSession.user?.email || '');
