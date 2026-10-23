@@ -114,6 +114,44 @@ const ADMIN_SECTIONS = [
     ],
   },
   {
+    key: 'email-content',
+    label: 'Email content',
+    group: 'Site',
+    icon: Copy,
+    table: 'street_trading_co_company_info',
+    single: true,
+    title: 'Email content',
+    description: 'Edit the customer and admin email templates used by order-status notifications.',
+    columns: ['order_confirmation_email_html', 'in_production_email_html', 'dispatched_email_html'],
+    fields: [
+      textField('order_confirmation_email_html', 'Order confirmation HTML', { type: 'textarea', rows: 8 }),
+      textField('admin_notification_email_html', 'Admin order notification HTML', { type: 'textarea', rows: 8 }),
+      textField('in_production_email_html', 'In production HTML', { type: 'textarea', rows: 8 }),
+      textField('production_completed_email_html', 'Production completed HTML', { type: 'textarea', rows: 8 }),
+      textField('dispatched_email_html', 'Dispatched HTML', { type: 'textarea', rows: 8 }),
+      textField('completed_email_html', 'Completed HTML', { type: 'textarea', rows: 8 }),
+      textField('order_confirmation_text', 'Order confirmation plain text', { type: 'textarea', rows: 6 }),
+      textField('processing_text', 'Processing plain text', { type: 'textarea', rows: 6 }),
+      textField('delivery_text', 'Delivery plain text', { type: 'textarea', rows: 6 }),
+    ],
+  },
+  {
+    key: 'pdf-content',
+    label: 'PDF content',
+    group: 'Site',
+    icon: Copy,
+    table: 'street_trading_co_company_info',
+    single: true,
+    title: 'PDF content',
+    description: 'Maintain the HTML templates used when an invoice or delivery note is generated.',
+    columns: ['invoice_template_html', 'delivery_note_template_html'],
+    fields: [
+      textField('invoice_template_html', 'Invoice template HTML', { type: 'textarea', rows: 12 }),
+      textField('delivery_note_template_html', 'Delivery note template HTML', { type: 'textarea', rows: 12 }),
+      textField('invoice_terms', 'Invoice terms', { type: 'textarea', rows: 4 }),
+    ],
+  },
+  {
     key: 'products',
     label: 'Products',
     group: 'Commerce',
@@ -125,7 +163,7 @@ const ADMIN_SECTIONS = [
     fields: [
       textField('name', 'Product name', { required: true }),
       textField('description', 'Description', { type: 'textarea', rows: 4, required: true }),
-      textField('image', 'Main image URL', { required: true, placeholder: 'https://...' }),
+      textField('image', 'Main image URL', { type: 'image', required: true, placeholder: 'https://...' }),
       textField('base_price', 'Base price', { type: 'number', step: '0.01', default: 0 }),
       textField('category', 'Category', { required: true }),
       textField('purchase_type', 'Purchase type', {
@@ -166,7 +204,7 @@ const ADMIN_SECTIONS = [
     columns: ['product_id', 'image_url', 'is_main'],
     fields: [
       textField('product_id', 'Product ID', { required: true, placeholder: 'UUID from Products' }),
-      textField('image_url', 'Image URL', { required: true, placeholder: 'https://...' }),
+      textField('image_url', 'Image URL', { type: 'image', required: true, placeholder: 'https://...' }),
       textField('is_main', 'Main image', { type: 'boolean', default: false }),
     ],
   },
@@ -219,7 +257,7 @@ const ADMIN_SECTIONS = [
       textField('sku', 'SKU'),
       textField('stock', 'Stock', { type: 'integer', default: 0 }),
       textField('low_stock_threshold', 'Low-stock threshold', { type: 'integer', default: 5 }),
-      textField('image_url', 'Variant image URL'),
+      textField('image_url', 'Variant image URL', { type: 'image' }),
     ],
   },
   {
@@ -266,6 +304,15 @@ const ADMIN_SECTIONS = [
       textField('tracking_number', 'Tracking number'),
       textField('admin_notes', 'Admin notes', { type: 'textarea', rows: 4 }),
     ],
+  },
+  {
+    key: 'discount-url',
+    label: 'Discount URL',
+    group: 'Marketing',
+    icon: Copy,
+    tool: 'discount-url',
+    title: 'Discount URL generator',
+    description: 'Generate a product link that pre-selects a discount code, as in the Swordfish settings workspace.',
   },
   {
     key: 'discounts',
@@ -326,7 +373,7 @@ const ADMIN_SECTIONS = [
     fields: [
       textField('name', 'Name', { required: true }),
       textField('bio', 'Bio', { type: 'textarea', rows: 4, required: true }),
-      textField('image', 'Profile image URL', { required: true }),
+      textField('image', 'Profile image URL', { type: 'image', required: true }),
       textField('instagram_handle', 'Instagram handle', { required: true }),
       textField('featured', 'Featured', { type: 'boolean', default: false }),
     ],
@@ -342,7 +389,7 @@ const ADMIN_SECTIONS = [
     columns: ['artist_id', 'image_url', 'created_at'],
     fields: [
       textField('artist_id', 'Artist ID', { required: true }),
-      textField('image_url', 'Image URL', { required: true }),
+      textField('image_url', 'Image URL', { type: 'image', required: true }),
     ],
   },
   {
@@ -393,6 +440,33 @@ const ADMIN_SECTIONS = [
       textField('date', 'Date', { required: true }),
       textField('location', 'Location', { required: true }),
       textField('active', 'Active', { type: 'boolean', default: true }),
+    ],
+  },
+  {
+    key: 'analytics',
+    label: 'Analytics',
+    group: 'Workspace',
+    icon: BarChart3,
+    tool: 'analytics',
+    title: 'Analytics',
+    description: 'Review catalogue, order, revenue, and engagement totals from the isolated Street Trading tables.',
+  },
+  {
+    key: 'access',
+    label: 'Admin access',
+    group: 'Workspace',
+    icon: Settings2,
+    table: 'street_trading_co_admin_users',
+    title: 'Admin access',
+    description: 'Access is granted through Supabase Auth and this isolated allow-list. Account creation is intentionally kept out of the public client.',
+    allowCreate: false,
+    allowDelete: false,
+    allowEdit: false,
+    columns: ['user_id', 'role', 'created_at'],
+    fields: [
+      textField('user_id', 'User ID', { readOnly: true }),
+      textField('role', 'Role', { readOnly: true }),
+      textField('created_at', 'Granted', { readOnly: true }),
     ],
   },
 ];
@@ -686,6 +760,10 @@ function AdminDashboard({ session, onSignOut }) {
           </div>
           {activeKey === 'overview' ? (
             <Overview onOpen={selectSection} />
+          ) : activeSection.tool === 'discount-url' ? (
+            <DiscountUrlPanel />
+          ) : activeSection.tool === 'analytics' ? (
+            <AnalyticsPanel />
           ) : (
             <CrudPanel key={activeKey} section={activeSection} />
           )}
@@ -824,6 +902,179 @@ function Overview({ onOpen }) {
   );
 }
 
+function DiscountUrlPanel() {
+  const [products, setProducts] = useState([]);
+  const [discounts, setDiscounts] = useState([]);
+  const [productId, setProductId] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
+  const [generatedUrl, setGeneratedUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function loadOptions() {
+      if (!supabase) return;
+      const [productResult, discountResult] = await Promise.all([
+        supabase.from('street_trading_co_products').select('id, name').order('name'),
+        supabase.from('street_trading_co_discount_codes').select('id, code').eq('active', true).order('code'),
+      ]);
+      if (!active) return;
+      setProducts(productResult.data || []);
+      setDiscounts(discountResult.data || []);
+      setLoading(false);
+    }
+    loadOptions();
+    return () => { active = false; };
+  }, []);
+
+  function generateUrl(event) {
+    event.preventDefault();
+    if (!productId || !discountCode) return;
+    const url = window.location.origin + '/products?product_id=' + encodeURIComponent(productId) + '&discount_code=' + encodeURIComponent(discountCode);
+    setGeneratedUrl(url);
+    setCopied(false);
+  }
+
+  async function copyUrl() {
+    if (!generatedUrl) return;
+    await navigator.clipboard.writeText(generatedUrl);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  }
+
+  return (
+    <div className="tool-panel">
+      <div className="dashboard-title-row">
+        <div>
+          <p className="dashboard-kicker">MARKETING</p>
+          <h1>Discount URL generator</h1>
+          <p className="dashboard-lede">Create a product link with a discount code already attached to the query string.</p>
+        </div>
+      </div>
+      <section className="dashboard-panel tool-card">
+        <div className="panel-heading">
+          <div>
+            <p className="dashboard-kicker">CAMPAIGN LINK</p>
+            <h2>Choose a product and code</h2>
+          </div>
+          <Copy size={18} className="tool-heading-icon" />
+        </div>
+        <form className="tool-form" onSubmit={generateUrl}>
+          <label className="record-field">
+            <span>PRODUCT</span>
+            <select value={productId} onChange={(event) => setProductId(event.target.value)} required disabled={loading}>
+              <option value="">{loading ? 'Loading products…' : 'Select a product'}</option>
+              {products.map((product) => <option value={product.id} key={product.id}>{product.name}</option>)}
+            </select>
+          </label>
+          <label className="record-field">
+            <span>DISCOUNT CODE</span>
+            <select value={discountCode} onChange={(event) => setDiscountCode(event.target.value)} required disabled={loading}>
+              <option value="">{loading ? 'Loading codes…' : 'Select a code'}</option>
+              {discounts.map((discount) => <option value={discount.code} key={discount.id}>{discount.code}</option>)}
+            </select>
+          </label>
+          <button className="dashboard-primary" type="submit"><Copy size={14} /> GENERATE URL</button>
+        </form>
+        {generatedUrl && (
+          <div className="generated-url">
+            <code>{generatedUrl}</code>
+            <div>
+              <button className="dashboard-primary" type="button" onClick={copyUrl}>{copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'COPIED' : 'COPY'}</button>
+              <a className="dashboard-refresh" href={generatedUrl} target="_blank" rel="noreferrer">OPEN</a>
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function AnalyticsPanel() {
+  const [metrics, setMetrics] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    async function loadMetrics() {
+      if (!supabase) return;
+      const [products, orders, artists, reviews, offers, events] = await Promise.all([
+        supabase.from('street_trading_co_products').select('id, featured'),
+        supabase.from('street_trading_co_orders').select('id, status, total_amount, currency, created_at'),
+        supabase.from('street_trading_co_artists').select('id, featured'),
+        supabase.from('street_trading_co_reviews').select('id, rating'),
+        supabase.from('street_trading_co_special_offers').select('id, active'),
+        supabase.from('street_trading_co_events').select('id, active, date'),
+      ]);
+      if (!active) return;
+      const firstError = [products, orders, artists, reviews, offers, events].find((result) => result.error)?.error;
+      if (firstError) setError(firstError.message || 'Unable to load analytics.');
+      const orderRows = orders.data || [];
+      const completed = orderRows.filter((order) => order.status === 'completed');
+      const revenuePence = completed.reduce((total, order) => total + (Number(order.total_amount) || 0), 0);
+      const reviewRows = reviews.data || [];
+      setMetrics({
+        products: (products.data || []).length,
+        featuredProducts: (products.data || []).filter((product) => product.featured).length,
+        orders: orderRows.length,
+        completedOrders: completed.length,
+        revenue: revenuePence / 100,
+        artists: (artists.data || []).length,
+        featuredArtists: (artists.data || []).filter((artist) => artist.featured).length,
+        reviews: reviewRows.length,
+        averageRating: reviewRows.length ? reviewRows.reduce((total, review) => total + Number(review.rating || 0), 0) / reviewRows.length : 0,
+        activeOffers: (offers.data || []).filter((offer) => offer.active).length,
+        upcomingEvents: (events.data || []).filter((event) => event.active && new Date(event.date) >= new Date()).length,
+      });
+    }
+    loadMetrics();
+    return () => { active = false; };
+  }, []);
+
+  const cards = metrics ? [
+    ['Products', metrics.products, metrics.featuredProducts + ' featured'],
+    ['Orders', metrics.orders, metrics.completedOrders + ' completed'],
+    ['Revenue', '£' + metrics.revenue.toFixed(2), 'completed orders'],
+    ['Artists', metrics.artists, metrics.featuredArtists + ' featured'],
+    ['Reviews', metrics.reviews, metrics.averageRating.toFixed(1) + ' average rating'],
+    ['Marketing', metrics.activeOffers + metrics.upcomingEvents, metrics.activeOffers + ' offers · ' + metrics.upcomingEvents + ' events'],
+  ] : [];
+
+  return (
+    <div className="tool-panel">
+      <div className="dashboard-title-row">
+        <div>
+          <p className="dashboard-kicker">WORKSPACE</p>
+          <h1>Analytics</h1>
+          <p className="dashboard-lede">A read-only view of the isolated Street Trading catalogue and order pipeline.</p>
+        </div>
+        <BarChart3 size={25} className="tool-heading-icon" />
+      </div>
+      {error && <div className="dashboard-alert"><AlertCircle size={16} /> {error}</div>}
+      <div className="analytics-grid">
+        {cards.length ? cards.map(([label, value, note]) => (
+          <div className="analytics-card" key={label}>
+            <p>{label}</p>
+            <strong>{value}</strong>
+            <span>{note}</span>
+          </div>
+        )) : <div className="loading-state"><RefreshCcw className="spin" size={16} /> Loading analytics…</div>}
+      </div>
+      <section className="dashboard-panel analytics-note">
+        <div className="panel-heading">
+          <div>
+            <p className="dashboard-kicker">DATA BOUNDARY</p>
+            <h2>Street Trading only</h2>
+          </div>
+          <Check size={17} />
+        </div>
+        <p>These figures read from <code>street_trading_co_*</code> tables only. Swordfish records and metrics are not included.</p>
+      </section>
+    </div>
+  );
+}
+
 function CrudPanel({ section }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -936,6 +1187,7 @@ function CrudPanel({ section }) {
 
   const canCreate = section.allowCreate !== false;
   const canDelete = section.allowDelete !== false;
+  const canEdit = section.allowEdit !== false;
   const columns = section.columns.map((name) => section.fields.find((field) => field.name === name) || { name, label: name });
 
   return (
@@ -1002,10 +1254,11 @@ function CrudPanel({ section }) {
                 </thead>
                 <tbody>
                   {filteredRows.map((row) => (
-                    <tr key={row.id}>
+                    <tr key={row.id || row.user_id || JSON.stringify(row)}>
                       {columns.map((column) => <td key={column.name}>{formatCell(row[column.name], column)}</td>)}
                       <td className="row-actions">
-                        <button className="icon-button" type="button" onClick={() => startEdit(row)} aria-label="Edit record"><Pencil size={14} /></button>
+                        {section.key === 'orders' && <OrderQuickActions row={row} onDone={loadRows} />}
+                        {canEdit && <button className="icon-button" type="button" onClick={() => startEdit(row)} aria-label="Edit record"><Pencil size={14} /></button>}
                         {canDelete && <button className="icon-button danger" type="button" onClick={() => remove(row)} aria-label="Delete record"><Trash2 size={14} /></button>}
                       </td>
                     </tr>
@@ -1022,6 +1275,40 @@ function CrudPanel({ section }) {
   );
 }
 
+function OrderQuickActions({ row, onDone }) {
+  const [busy, setBusy] = useState('');
+  const actions = [
+    ['START', 'in_production', true],
+    ['MADE', 'production_completed', true],
+    ['SEND', 'dispatched', true],
+    ['DONE', 'completed', true],
+    ['ISSUE', 'problem', false],
+  ];
+
+  async function applyAction(label, status, sendEmail) {
+    setBusy(label);
+    const { error } = await supabase.functions.invoke('street-trading-update-order-status', {
+      body: { order_id: row.id, status, send_email: sendEmail },
+    });
+    setBusy('');
+    if (error) {
+      window.alert(error.message || 'Unable to update the order.');
+      return;
+    }
+    await onDone();
+  }
+
+  return (
+    <div className="quick-order-actions">
+      {actions.filter(([, status]) => status !== row.status).map(([label, status, sendEmail]) => (
+        <button type="button" key={status} disabled={Boolean(busy)} onClick={() => applyAction(label, status, sendEmail)} title={'Set status to ' + status.replaceAll('_', ' ')}>
+          {busy === label ? '…' : label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AdminField({ field, value, onChange }) {
   if (field.type === 'boolean') {
     return (
@@ -1031,6 +1318,10 @@ function AdminField({ field, value, onChange }) {
         <span><strong>{field.label}</strong><small>Enable this setting</small></span>
       </label>
     );
+  }
+
+  if (field.type === 'image') {
+    return <ImageAdminField field={field} value={value} onChange={onChange} />;
   }
 
   const common = {
@@ -1056,6 +1347,64 @@ function AdminField({ field, value, onChange }) {
       ) : (
         <input {...common} type={field.type === 'datetime' ? 'datetime-local' : field.type === 'number' || field.type === 'integer' ? 'number' : field.type} />
       )}
+    </label>
+  );
+}
+
+function ImageAdminField({ field, value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setError('');
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setError('Use JPEG, PNG, WebP, or GIF.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Images must be smaller than 10MB.');
+      return;
+    }
+    if (!supabase) {
+      setError('Storage is not configured.');
+      return;
+    }
+    setUploading(true);
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const path = 'street-trading/' + (crypto.randomUUID ? crypto.randomUUID() : Date.now()) + '.' + extension;
+    const { error: uploadError } = await supabase.storage
+      .from('street-trading-co-images')
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (uploadError) {
+      setError(uploadError.message || 'Upload failed.');
+    } else {
+      const { data } = supabase.storage.from('street-trading-co-images').getPublicUrl(path);
+      onChange(field.name, data.publicUrl);
+    }
+    setUploading(false);
+    event.target.value = '';
+  }
+
+  return (
+    <label className="record-field wide-field">
+      <span>{field.label}{field.required ? <i>*</i> : null}</span>
+      <div className="image-field">
+        <input
+          id={field.name}
+          type="url"
+          value={value ?? ''}
+          required={field.required}
+          placeholder={field.placeholder || 'https://…'}
+          onChange={(event) => onChange(field.name, event.target.value)}
+        />
+        <label className="upload-control">
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleUpload} disabled={uploading} />
+          {uploading ? 'UPLOADING…' : 'UPLOAD'}
+        </label>
+      </div>
+      {error && <small className="field-error">{error}</small>}
     </label>
   );
 }
