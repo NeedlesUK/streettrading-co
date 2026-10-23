@@ -10,9 +10,13 @@ a{color:inherit}
 .topline,.footer{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between}
 .wordmark{display:inline-flex;align-items:center;gap:11px;text-decoration:none;font-size:11px;font-weight:800;letter-spacing:.16em}
 .wordmark-mark{display:grid;place-items:center;width:30px;height:30px;border:1px solid #6e6b66;border-radius:50%;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:-.08em;color:#e5e1da}
-.status,.eyebrow,.footer,.domain-link{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em}
+.top-actions{display:flex;align-items:center;gap:22px}
+.status,.eyebrow,.footer,.address-label,.admin-link,.back-link,.admin-field,.admin-submit,.admin-status{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em}
 .status{color:#c7c2b9;display:flex;align-items:center;gap:10px}
 .status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#c6baaa;box-shadow:0 0 12px #c6baaa77}
+.admin-link,.back-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#ebe7df;transition:color .2s,border-color .2s}
+.admin-link{border:1px solid #413e39;padding:10px 12px}
+.admin-link:hover,.back-link:hover{color:#fff;border-color:#e0d8cc}
 .hero{position:relative;z-index:1;flex:1;display:grid;grid-template-columns:minmax(250px, .95fr) minmax(320px,1.05fr);align-items:center;gap:clamp(36px,8vw,132px);max-width:1270px;width:100%;margin:30px auto 44px}
 .logo-frame{position:relative;display:flex;align-items:center;justify-content:center;max-width:540px;margin:auto;width:100%;aspect-ratio:1;background:#000;box-shadow:0 0 0 1px #ffffff0a,0 28px 85px #000a}
 .logo-frame:before{content:"";position:absolute;inset:16px;border:1px solid #ffffff12;pointer-events:none}
@@ -23,8 +27,29 @@ a{color:inherit}
 h1{margin:0;font-size:clamp(50px,6.3vw,88px);line-height:.99;letter-spacing:-.075em;font-weight:600}
 h1 em{font-family:Georgia,serif;font-weight:400;color:#d2cbc1}
 .intro{margin:29px 0 33px;color:#aaa7a1;font-size:14px;line-height:1.8;letter-spacing:.005em}
-.domain-link{display:inline-flex;align-items:center;gap:12px;text-decoration:none;border-bottom:1px solid #635e57;padding:0 0 11px;color:#ebe7df;transition:color .2s,border-color .2s}
-.domain-link:hover{color:#fff;border-color:#e0d8cc}
+.address-block{display:flex;flex-direction:column;gap:8px;margin-top:29px}
+.address-label{color:#817d75;font-size:8px}
+.address-block address{font-style:normal;color:#ebe7df;font-size:14px;line-height:1.55;letter-spacing:.01em}
 .footer{padding-top:19px;border-top:1px solid var(--line);color:#817e78;font-size:8px}
-@media(max-width:760px){.holding-page{padding:23px 21px 20px}.topline{gap:18px}.wordmark{font-size:9px;letter-spacing:.12em}.status{font-size:7px;letter-spacing:.1em;gap:7px}.hero{grid-template-columns:1fr;gap:29px;margin:34px auto 38px;max-width:480px}.logo-frame{width:min(100%,350px)}.logo-frame:before{inset:11px}.hero-copy{text-align:center;padding:0 0 4px}.eyebrow{margin-bottom:18px;font-size:8px}h1{font-size:clamp(51px,13vw,74px)}.intro{margin:22px 0 26px;font-size:13px}.desktop-break{display:none}.domain-link{justify-content:center;font-size:8px}.footer{font-size:7px;letter-spacing:.1em;gap:14px}.footer span:first-child{max-width:140px}}
+.admin-page{min-height:100vh;position:relative;display:flex;flex-direction:column;overflow:hidden;padding:32px clamp(22px,6.3vw,100px) 27px;background:radial-gradient(ellipse at 74% 48%,#191817 0%,#0b0b0b 42%,#080808 76%)}
+.admin-shell{position:relative;z-index:1;flex:1;display:grid;place-items:center;width:100%;max-width:760px;margin:30px auto 44px}
+.admin-card{width:min(100%,520px);padding:clamp(28px,5vw,58px);border:1px solid #2a2927;background:linear-gradient(145deg,#121110,#0b0b0b);box-shadow:0 28px 85px #0008}
+.admin-card h1{font-size:clamp(55px,7vw,84px)}
+.admin-card .intro{margin:26px 0 30px}
+.admin-form{display:grid;gap:17px}
+.admin-field{display:grid;gap:9px;color:#9b978f;font-size:8px}
+.admin-field input{width:100%;padding:13px 12px;border:1px solid #3c3935;background:#080808;color:#f2f0eb;font:inherit;font-size:13px;letter-spacing:0;outline:none}
+.admin-field input:focus{border-color:#c5beb3;box-shadow:0 0 0 2px #c5beb322}
+.admin-submit{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:43px;border:1px solid #d7d1c8;background:#d7d1c8;color:#0b0b0b;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.admin-submit:hover{background:#fff;border-color:#fff}
+.admin-submit:disabled{cursor:wait;opacity:.65}
+.admin-submit.secondary{margin-top:20px;background:transparent;color:#ebe7df;border-color:#4a4640}
+.admin-submit.secondary:hover{background:#ebe7df;color:#0b0b0b}
+.admin-status{margin:4px 0 0;font-size:8px;line-height:1.6;letter-spacing:.08em}
+.admin-status.error{color:#d7a69d}
+.admin-status.success{color:#c7c2b9}
+.admin-success>p:not(.admin-status){color:#aaa7a1;font-size:14px;line-height:1.7;margin:12px 0 0}
+.back-link{font-size:8px}
+.admin-link:focus-visible,.back-link:focus-visible,.admin-submit:focus-visible{outline:1px solid #f2f0eb;outline-offset:4px}
+@media(max-width:760px){.holding-page,.admin-page{padding:23px 21px 20px}.topline{gap:18px}.wordmark{font-size:9px;letter-spacing:.12em}.top-actions{gap:10px}.status{font-size:7px;letter-spacing:.1em;gap:7px}.status{white-space:nowrap}.admin-link{padding:8px 9px;font-size:7px}.admin-link svg{width:12px}.hero{grid-template-columns:1fr;gap:29px;margin:34px auto 38px;max-width:480px}.logo-frame{width:min(100%,350px)}.logo-frame:before{inset:11px}.hero-copy{text-align:center;padding:0 0 4px}.eyebrow{margin-bottom:18px;font-size:8px}h1{font-size:clamp(51px,13vw,74px)}.intro{margin:22px 0 26px;font-size:13px}.desktop-break{display:none}.address-block{margin-top:26px}.address-label{font-size:7px}.address-block address{font-size:13px}.footer{font-size:7px;letter-spacing:.1em;gap:14px}.footer span:first-child{max-width:140px}.admin-shell{margin:24px auto 38px}.admin-card{padding:28px 22px}.admin-topline .back-link{font-size:7px;gap:5px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
